@@ -71,24 +71,36 @@
 
 - (void)startEvent
 {
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Start this event?", @"")
-                                                    message:NSLocalizedString(@"The game will restart, and any unsaved data will be lost.", @"")
-                                                   delegate:nil
-                                          cancelButtonTitle:NSLocalizedString(@"Cancel", @"")
-                                          otherButtonTitles:NSLocalizedString(@"Start", @""), nil];
-    [alert showWithSelectionHandler:^(UIAlertView *alertView, NSInteger buttonIndex) {
-        if (buttonIndex == 1)
-        {
-            NSString *uniqueEventDirectory = [[self eventsDirectory] stringByAppendingPathComponent:self.event.identifier];
-            
-            GBAROM *eventROM = [GBAROM romWithContentsOfFile:[uniqueEventDirectory stringByAppendingPathComponent:[self romFilename]]];
-            eventROM.event = self.event;
-            
-            [self.delegate eventDistributionDetailViewController:self startEvent:self.event forROM:eventROM];
-        }
-        
-        [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
-    }];
+    
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Start this event?", @"")
+                                                                   message:NSLocalizedString(@"The game will restart, and any unsaved data will be lost.", @"")
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *startAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Start", @"")
+                                                          style:UIAlertActionStyleDefault
+                                                        handler:^(UIAlertAction * _Nonnull action) {
+                                                            
+                                                            NSString *uniqueEventDirectory = [[self eventsDirectory] stringByAppendingPathComponent:self.event.identifier];
+                                                            
+                                                            GBAROM *eventROM = [GBAROM romWithContentsOfFile:[uniqueEventDirectory stringByAppendingPathComponent:[self romFilename]]];
+                                                            eventROM.event = self.event;
+                                                            
+                                                            [self.delegate eventDistributionDetailViewController:self startEvent:self.event forROM:eventROM];
+                                                            
+                                                            [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
+                                                        }];
+    
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", @"")
+                                                           style:UIAlertActionStyleCancel
+                                                         handler:^(UIAlertAction * _Nonnull action) {
+                                                             
+                                                             [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
+                                                         }];
+    
+    [alert addAction:startAction];
+    [alert addAction:cancelAction];
+    
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 - (void)deleteEvent

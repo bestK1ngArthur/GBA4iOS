@@ -25,6 +25,7 @@
 
 #import "UIAlertView+RSTAdditions.h"
 #import "UIActionSheet+RSTAdditions.h"
+#import "UIAlertController+Additions.h"
 
 #import "SSZipArchive.h"
 #import <ObjectiveDropboxOfficial/ObjectiveDropboxOfficial.h>
@@ -1349,19 +1350,21 @@ dispatch_queue_t directoryContentsChangedQueue() {
     
     if ([self.emulationViewController.rom isEqual:rom])
     {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Cannot Rename Currently Running Game", @"")
-                                                        message:NSLocalizedString(@"To rename this game, please quit it so it is no longer running. All unsaved data will be lost.", @"")
-                                                       delegate:nil
-                                              cancelButtonTitle:NSLocalizedString(@"Cancel", @"")
-                                              otherButtonTitles:NSLocalizedString(@"Quit", @""), nil];
-        [alert showWithSelectionHandler:^(UIAlertView *alertView, NSInteger buttonIndex) {
-            if (buttonIndex == 1)
-            {
-                self.emulationViewController.rom = nil;
-                [self.tableView reloadData];
-                [self showRenameAlertForROMAtIndexPath:indexPath];
-            }
-        }];
+        UIAlertAction *quitAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Quit", @"")
+                                                             style:UIAlertActionStyleDefault
+                                                           handler:^(UIAlertAction * _Nonnull action) {
+                                                               self.emulationViewController.rom = nil;
+                                                               [self.tableView reloadData];
+                                                               [self showRenameAlertForROMAtIndexPath:indexPath];
+                                                           }];
+        
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Cannot Rename Currently Running Game", @"")
+                                                                       message:NSLocalizedString(@"To rename this game, please quit it so it is no longer running. All unsaved data will be lost.", @"")
+                                                             cancelButtonTitle:NSLocalizedString(@"Cancel", @"")
+                                                                  otherActions:@[quitAction]
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+        
+        [self presentViewController:alert animated:YES completion:nil];
         
         return;
     }

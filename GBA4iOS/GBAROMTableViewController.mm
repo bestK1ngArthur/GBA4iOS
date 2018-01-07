@@ -167,6 +167,9 @@ dispatch_queue_t directoryContentsChangedQueue() {
     {
         [self.tableView scrollToRowAtIndexPath:self.selectedROMIndexPath atScrollPosition:UITableViewScrollPositionMiddle animated:NO];
     }
+    
+    // Set table view
+    self.tableView.tableFooterView = [[UIView alloc] init]; // Fix separator's bug
 }
 
 - (void)viewWillDisappear:(BOOL)animated

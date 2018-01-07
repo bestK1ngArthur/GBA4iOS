@@ -10,6 +10,7 @@
 #import "GBASoftwareUpdateOperation.h"
 
 #import "UIAlertView+RSTAdditions.h"
+#import "UIAlertController+Additions.h"
 
 @interface GBASoftwareUpdateViewController ()
 
@@ -153,11 +154,16 @@
             
             if (error)
             {
-                UIAlertView *alert = [[UIAlertView alloc] initWithError:error cancelButtonTitle:NSLocalizedString(@"Cancel", @"")];
-                [alert showWithSelectionHandler:^(UIAlertView *alertView, NSInteger buttonIndex) {
-                    [self.navigationController popToRootViewControllerAnimated:YES];
-                }];
+                UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", @"")
+                                                                       style:UIAlertActionStyleCancel
+                                                                     handler:^(UIAlertAction * _Nonnull action) {
+                                                                         [self.navigationController popToRootViewControllerAnimated:YES];
+                                                                     }];
                 
+                UIAlertController *alert = [UIAlertController alertControllerWithError:error cancelAction:cancelAction];
+                
+                [self presentViewController:alert animated:YES completion:nil];
+
                 self.statusLabel.text = NSLocalizedString(@"Failed to check for update.", @"");
                 
                 [UIView transitionWithView:self.statusLabel duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
@@ -234,19 +240,18 @@
 {
     if (indexPath.section == 1)
     {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Are you sure you want to update GBA4iOS?", @"")
-                                                        message:NSLocalizedString(@"Before updating, make sure you have set the date back on this device at least 24 hours. Failure to do so may result in an incomplete update and prevent the app from opening.", @"")
-                                                       delegate:nil
-                                              cancelButtonTitle:NSLocalizedString(@"Cancel", @"")
-                                              otherButtonTitles:NSLocalizedString(@"Update", @""), nil];
-        [alert showWithSelectionHandler:^(UIAlertView *alertView, NSInteger buttonIndex) {
-            
-            if (buttonIndex == 1)
-            {
-                [[UIApplication sharedApplication] openURL:self.softwareUpdate.url];
-            }
-            
-        }];
+        UIAlertAction *updateAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Update", @"")
+                                                               style:UIAlertActionStyleDefault
+                                                             handler:^(UIAlertAction * _Nonnull action) {
+                                                                 [[UIApplication sharedApplication] openURL:self.softwareUpdate.url];
+                                                             }];
+        
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Are you sure you want to update GBA4iOS?", @"")
+                                                                       message:NSLocalizedString(@"Before updating, make sure you have set the date back on this device at least 24 hours. Failure to do so may result in an incomplete update and prevent the app from opening.", @"")
+                                                             cancelButtonTitle:NSLocalizedString(@"Cancel", @"")
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+        
+        [self presentViewController:alert animated:YES completion:nil];
     }
     
     [self.tableView deselectRowAtIndexPath:[tableView indexPathForSelectedRow] animated:YES];

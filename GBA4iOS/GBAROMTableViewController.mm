@@ -316,45 +316,47 @@ dispatch_queue_t directoryContentsChangedQueue() {
         
         self.awaitingDownloadHTTPResponse = NO;
         
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"By tapping “Download” below, you confirm that you legally own a physical copy of this game. GBA4iOS does not promote pirating in any form.", @"")
-                                                        message:nil delegate:nil cancelButtonTitle:NSLocalizedString(@"Cancel", @"") otherButtonTitles:NSLocalizedString(@"Download", @""), nil];
-        alert.tag = LEGAL_NOTICE_ALERT_TAG;
-            [alert showWithSelectionHandler:^(UIAlertView *alertView, NSInteger buttonIndex) {
-                
-                if (buttonIndex == 1)
-                {
-                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Game Name", @"")
-                                                                    message:nil
-                                                                   delegate:self
-                                                          cancelButtonTitle:NSLocalizedString(@"Cancel", @"") otherButtonTitles:NSLocalizedString(@"Save", @""), nil];
-                    alert.alertViewStyle = UIAlertViewStylePlainTextInput;
-                    alert.tag = NAME_ROM_ALERT_TAG;
-                    
-                    UITextField *textField = [alert textFieldAtIndex:0];
-                    textField.text = [[response suggestedFilename] stringByDeletingPathExtension];
-                    textField.autocapitalizationType = UITextAutocapitalizationTypeSentences;
-                    
-                    [alert showWithSelectionHandler:^(UIAlertView *namingAlertView, NSInteger namingButtonIndex) {
-                        
-                        if (namingButtonIndex == 1)
-                        {
-                            NSString *filename = [[namingAlertView textFieldAtIndex:0] text];
-                            [self startDownloadWithFilename:filename downloadTask:downloadTask startDownloadBlock:startDownloadBlock];
-                        }
-                        else
-                        {
-                            startDownloadBlock(NO, nil);
-                        }
-                        
-                    }];
-                }
-                else
-                {
-                    startDownloadBlock(NO, nil);
-                }
-                
-            }];
+        UIAlertAction *downloadAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Download", @"")
+                                                                 style:UIAlertActionStyleDefault
+                                                               handler:^(UIAlertAction * _Nonnull action) {
+                                                                   
+                                                                   UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Game Name", @"")
+                                                                                                                                  message:nil
+                                                                                                                           preferredStyle:UIAlertControllerStyleAlert];
+                                                                   
+                                                                   // This tag isn't used anywhere else, so I'm not sure that it's necessary here
+                                                                   //alert.tag = NAME_ROM_ALERT_TAG;
+                                                                   
+                                                                   [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
+                                                                       
+                                                                       textField.text = [[response suggestedFilename] stringByDeletingPathExtension];
+                                                                       textField.autocapitalizationType = UITextAutocapitalizationTypeSentences;
+                                                                   }];
+                                                                   
+                                                                   UIAlertAction *saveAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Save", @"")
+                                                                                                                        style:UIAlertActionStyleDefault
+                                                                                                                      handler:^(UIAlertAction * _Nonnull action) {
+                                                                                                                          
+                                                                                                                          UITextField *textField = [alert.textFields firstObject];
+                                                                                                                          NSString *filename = [textField text];
+                                                                                                                          
+                                                                                                                          [self startDownloadWithFilename:filename downloadTask:downloadTask startDownloadBlock:startDownloadBlock];
+                                                                                                                      }];
+                                                                   [alert addAction:saveAction];
+                                                                   
+                                                                   [webViewController presentViewController:alert animated:YES completion:nil];
+                                                               }];
         
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"By tapping “Download” below, you confirm that you legally own a physical copy of this game. GBA4iOS does not promote pirating in any form.", @"")
+                                                                       message:nil
+                                                             cancelButtonTitle:NSLocalizedString(@"Cancel", @"")
+                                                                  otherActions:@[downloadAction]
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+        
+        // This tag isn't used anywhere else, so I'm not sure that it's necessary here
+        // alert.tag = LEGAL_NOTICE_ALERT_TAG;
+        
+        [webViewController presentViewController:alert animated:YES completion:nil];
     }];
 }
 
